@@ -1,0 +1,318 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: roro\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+msgid "Map"
+msgstr "Map"
+
+msgid "Favorites"
+msgstr "Favorites"
+
+msgid "Magazine"
+msgstr "Magazine"
+
+msgid "Profile"
+msgstr "Profile"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Language"
+msgstr "Language"
+
+# New strings for accessibility and API descriptions
+msgid "Change language"
+msgstr "Change language"
+
+msgid "Type of the target (event, spot, pet)"
+msgstr "Type of the target (event, spot, pet)"
+
+msgid "ID of the target item"
+msgstr "ID of the target item"
+
+msgid "メインコンテンツへスキップ"
+msgstr "Skip to main content"
+
+# Translate the key used in HTML data-i18n-key attributes
+msgid "skip_to_main"
+msgstr "Skip to main content"
+
+# Reason used in configurable recommendations when event matches user interests
+msgid "あなたの興味に関連しています"
+msgstr "It matches your interests"
+
+# Strings for Recommendation KPI Dashboard
+msgid "推薦KPIダッシュボード"
+msgstr "Recommendation KPI Dashboard"
+
+msgid "期間別にクリック数、ファボ数、ファボ率、再訪率を表示します。"
+msgstr "Displays click counts, favourite counts, favourite rate and revisit rate by period."
+
+msgid "今日"
+msgstr "Today"
+
+msgid "7日間"
+msgstr "7 Days"
+
+msgid "30日間"
+msgstr "30 Days"
+
+msgid "イベントID"
+msgstr "Event ID"
+
+msgid "イベント名"
+msgstr "Event Name"
+
+msgid "クリック数"
+msgstr "Clicks"
+
+msgid "お気に入り数"
+msgstr "Favourites"
+
+msgid "お気に入り率"
+msgstr "Favourite Rate"
+
+msgid "セッション数"
+msgstr "Sessions"
+
+msgid "クリック率"
+msgstr "Click Rate"
+
+msgid "再訪率"
+msgstr "Revisit Rate"
+
+msgid "推薦KPI"
+msgstr "Recommendation KPI"
+
+msgid "Reset view"
+msgstr "Reset view"
+
+# Web Vitals column headings
+msgid "LCP平均 (ms)"
+msgstr "LCP Avg (ms)"
+
+msgid "LCP中央値 (ms)"
+msgstr "LCP Median (ms)"
+
+msgid "LCP P90 (ms)"
+msgstr "LCP P90 (ms)"
+
+msgid "CLS平均"
+msgstr "CLS Avg"
+
+msgid "CLS中央値"
+msgstr "CLS Median"
+
+msgid "CLS P90"
+msgstr "CLS P90"
+
+msgid "INP平均 (ms)"
+msgstr "INP Avg (ms)"
+
+msgid "INP中央値 (ms)"
+msgstr "INP Median (ms)"
+
+msgid "INP P90 (ms)"
+msgstr "INP P90 (ms)"
+
+# Web Vitals explanation
+msgid "最近のページ表示から収集された LCP / CLS / INP の平均値・中央値・P90 を表示します。"
+msgstr "Shows the average, median (P50) and P90 of LCP / CLS / INP collected from recent page views."
+
+msgid "近くで開催されます"
+msgstr "Held nearby"
+
+# Admin recommendation page additions
+msgid "クリック数"
+msgstr "Clicks"
+
+msgid "お気に入り率"
+msgstr "Favourite rate"
+
+msgid "イベントのクリック率とお気に入り率を確認できます。"
+msgstr "View click and favourite rates of events."
+
+# Web Vitals admin page
+msgid "Core Web Vitals"
+msgstr "Core Web Vitals"
+
+msgid "最近のページ表示から収集された LCP / CLS / INP の平均値を表示します。"
+msgstr "Shows average LCP/CLS/INP from recent page views."
+
+msgid "期間"
+msgstr "Period"
+
+msgid "当日"
+msgstr "Today"
+
+msgid "7日間"
+msgstr "7 days"
+
+msgid "30日間"
+msgstr "30 days"
+
+# Recommendation reasons for weighting factors
+msgid "人気度が高い"
+msgstr "Highly popular"
+
+msgid "多くクリックされている"
+msgstr "Highly clicked"
+
+msgid "新しいイベント"
+msgstr "Recently added event"
+
+msgid "お気に入りが%d件"
+msgstr "Favorited by %d users"
+
+msgid "開催日が近い（%s）"
+msgstr "Event date is near (%s)"
+
+msgid "開催日が%sで人気イベント"
+msgstr "Event on %s is popular"
+
+msgid "最近開催（%s）"
+msgstr "Recently held (%s)"
+
+msgid "人気度と開催日からおすすめしています"
+msgstr "Recommended based on popularity and event date"
+
+msgid "ビュー数が%d回と高いためおすすめしています"
+msgstr "Recommended because views reached %d times"
+
+msgid "閲覧数が高いためおすすめしています"
+msgstr "Recommended because views are high"
+
+msgid "あなたのお気に入りに登録されているため"
+msgstr "Because it is in your favorites"
+
+msgid "ためおすすめしています"
+msgstr "recommended"
+
+msgid "開催日が%s"
+msgstr "Event date: %s"
+
+# Status history admin page strings
+msgid "ステータス履歴"
+msgstr "Status History"
+
+msgid "履歴閲覧"
+msgstr "History"
+
+msgid "最近のステータス変更の一覧です。"
+msgstr "A list of recent status changes."
+
+msgid "エンティティ"
+msgstr "Entity"
+
+msgid "レコードID"
+msgstr "Record ID"
+
+msgid "旧ステータス"
+msgstr "Old Status"
+
+msgid "新ステータス"
+msgstr "New Status"
+
+msgid "変更日時"
+msgstr "Changed At"
+
+msgid "変更者"
+msgstr "Changed By"
+
+msgid "履歴データがありません。"
+msgstr "No history data available."
+
+msgid "View"
+msgstr "View"
+
+# Recommendation analytics admin page strings
+msgid "推薦分析"
+msgstr "Recommendation Analysis"
+
+msgid "ユーザーのお気に入り登録データに基づくイベントの人気度を表示します。"
+msgstr "Displays the popularity of events based on users' favorite registrations."
+
+msgid "trending_events"
+msgstr "Trending Events"
+
+msgid "現在表示するデータがありません。"
+msgstr "There is currently no data to display."
+
+msgid "イベントID"
+msgstr "Event ID"
+
+msgid "イベント名"
+msgstr "Event Name"
+
+msgid "お気に入り数"
+msgstr "Favorite Count"
+
+# New magazine issue translations
+msgid "mag_issue_aug"
+msgstr "Aug 2025 Issue"
+
+msgid "mag_desc_aug"
+msgstr "Special on summer walks and cooling down"
+
+msgid "mag_theme_aug"
+msgstr "Summer Walks & Cooling"
+
+msgid "mag_issue_sep"
+msgstr "Sep 2025 Issue"
+
+msgid "mag_desc_sep"
+msgstr "Autumn outings and gear specials"
+
+msgid "mag_theme_sep"
+msgstr "Autumn Outings & Dog"
+
+msgid "mag_product_title"
+msgstr "Recommended Goods"
+
+msgid "mag_product_uv"
+msgstr "UV Protection Clothing"
+
+msgid "mag_product_cool"
+msgstr "Cooling Mat"
+
+msgid "mag_event_autumn"
+msgstr "Autumn Events"
+
+msgid "mag_tips_title"
+msgstr "Chii-mame's Hat Coordination"
+
+# Personalized recommendation reason for events not yet favourited
+msgid "まだお気に入りに追加していません"
+msgstr "Not yet added to favourites"
+
+# Suffix appended to concatenated reasons (e.g. "...ためおすすめしています")
+msgid "ためおすすめしています"
+msgstr "so we recommend it to you"
+
+# Skip link text used by screen readers
+msgid "skip_to_main"
+msgstr "Skip to main content"
+
+# Stage24: Recommend Report admin page translations
+msgid "Recommend Report"
+msgstr "Recommend Report"
+
+msgid "クリックレポート"
+msgstr "Click Report"
+
+msgid "Start Date"
+msgstr "Start Date"
+
+msgid "End Date"
+msgstr "End Date"
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "No data found for the selected period."
+msgstr "No data found for the selected period."

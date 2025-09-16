@@ -1,0 +1,318 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: roro\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Map"
+msgstr "マップ"
+
+msgid "Favorites"
+msgstr "お気に入り"
+
+msgid "Magazine"
+msgstr "雑誌"
+
+msgid "Profile"
+msgstr "マイページ"
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "Language"
+msgstr "言語"
+
+# New strings for accessibility and API descriptions
+msgid "Change language"
+msgstr "言語を変更"
+
+msgid "Type of the target (event, spot, pet)"
+msgstr "対象の種類（イベント、スポット、ペット）"
+
+msgid "ID of the target item"
+msgstr "対象アイテムのID"
+
+msgid "メインコンテンツへスキップ"
+msgstr "メインコンテンツへスキップ"
+
+# Translate the key used in HTML data-i18n-key attributes
+msgid "skip_to_main"
+msgstr "メインコンテンツへスキップ"
+
+# Reason used in configurable recommendations when event matches user interests
+msgid "あなたの興味に関連しています"
+msgstr "あなたの興味に関連しています"
+
+# Strings for Recommendation KPI Dashboard
+msgid "推薦KPIダッシュボード"
+msgstr "推薦KPIダッシュボード"
+
+msgid "期間別にクリック数、ファボ数、ファボ率、再訪率を表示します。"
+msgstr "期間別にクリック数、ファボ数、ファボ率、再訪率を表示します。"
+
+msgid "今日"
+msgstr "今日"
+
+msgid "7日間"
+msgstr "7日間"
+
+msgid "30日間"
+msgstr "30日間"
+
+msgid "イベントID"
+msgstr "イベントID"
+
+msgid "イベント名"
+msgstr "イベント名"
+
+msgid "クリック数"
+msgstr "クリック数"
+
+msgid "お気に入り数"
+msgstr "お気に入り数"
+
+msgid "お気に入り率"
+msgstr "お気に入り率"
+
+msgid "再訪率"
+msgstr "再訪率"
+
+# KPI dashboard new columns
+msgid "セッション数"
+msgstr "セッション数"
+
+msgid "クリック率"
+msgstr "クリック率"
+
+msgid "推薦KPI"
+msgstr "推薦KPI"
+
+msgid "Reset view"
+msgstr "周辺表示"
+
+# Web Vitals column headings
+msgid "LCP平均 (ms)"
+msgstr "LCP平均 (ms)"
+
+msgid "LCP中央値 (ms)"
+msgstr "LCP中央値 (ms)"
+
+msgid "LCP P90 (ms)"
+msgstr "LCP P90 (ms)"
+
+msgid "CLS平均"
+msgstr "CLS平均"
+
+msgid "CLS中央値"
+msgstr "CLS中央値"
+
+msgid "CLS P90"
+msgstr "CLS P90"
+
+msgid "INP平均 (ms)"
+msgstr "INP平均 (ms)"
+
+msgid "INP中央値 (ms)"
+msgstr "INP中央値 (ms)"
+
+msgid "INP P90 (ms)"
+msgstr "INP P90 (ms)"
+
+# Web Vitals explanation
+msgid "最近のページ表示から収集された LCP / CLS / INP の平均値・中央値・P90 を表示します。"
+msgstr "最近のページ表示から収集された LCP / CLS / INP の平均値・中央値・P90 を表示します。"
+
+msgid "近くで開催されます"
+msgstr "近くで開催されます"
+
+msgid "お気に入りが%d件"
+msgstr "お気に入りが%d件"
+
+msgid "開催日が近い（%s）"
+msgstr "開催日が近い（%s）"
+
+msgid "開催日が%sで人気イベント"
+msgstr "開催日が%sで人気イベント"
+
+msgid "最近開催（%s）"
+msgstr "最近開催（%s）"
+
+msgid "人気度と開催日からおすすめしています"
+msgstr "人気度と開催日からおすすめしています"
+
+msgid "ビュー数が%d回と高いためおすすめしています"
+msgstr "ビュー数が%d回と高いためおすすめしています"
+
+msgid "閲覧数が高いためおすすめしています"
+msgstr "閲覧数が高いためおすすめしています"
+
+# Status history admin page strings
+msgid "ステータス履歴"
+msgstr "ステータス履歴"
+
+msgid "履歴閲覧"
+msgstr "履歴閲覧"
+
+msgid "最近のステータス変更の一覧です。"
+msgstr "最近のステータス変更の一覧です。"
+
+msgid "エンティティ"
+msgstr "エンティティ"
+
+msgid "レコードID"
+msgstr "レコードID"
+
+msgid "旧ステータス"
+msgstr "旧ステータス"
+
+msgid "新ステータス"
+msgstr "新ステータス"
+
+msgid "変更日時"
+msgstr "変更日時"
+
+msgid "変更者"
+msgstr "変更者"
+
+msgid "履歴データがありません。"
+msgstr "履歴データがありません。"
+
+msgid "あなたのお気に入りに登録されているため"
+msgstr "あなたのお気に入りに登録されているため"
+
+# 新しい雑誌号の翻訳
+msgid "mag_issue_aug"
+msgstr "2025年8月号"
+
+msgid "mag_desc_aug"
+msgstr "夏のお散歩とクールダウン特集"
+
+msgid "mag_theme_aug"
+msgstr "夏のお散歩とクールダウン"
+
+msgid "mag_issue_sep"
+msgstr "2025年9月号"
+
+msgid "mag_desc_sep"
+msgstr "秋の行楽とグッズ特集"
+
+msgid "mag_theme_sep"
+msgstr "秋の行楽×ワンちゃん"
+
+msgid "mag_product_title"
+msgstr "おすすめグッズ"
+
+msgid "mag_product_uv"
+msgstr "UV対策洋服"
+
+msgid "mag_product_cool"
+msgstr "ひんやりマット"
+
+msgid "mag_event_autumn"
+msgstr "秋のイベント"
+
+msgid "mag_tips_title"
+msgstr "ちぃまめの帽子コーデ"
+
+msgid "ためおすすめしています"
+msgstr "ためおすすめしています"
+
+msgid "開催日が%s"
+msgstr "開催日が%s"
+
+# Recommendation analytics admin page strings
+msgid "推薦分析"
+msgstr "推薦分析"
+
+msgid "ユーザーのお気に入り登録データに基づくイベントの人気度を表示します。"
+msgstr "ユーザーのお気に入り登録データに基づくイベントの人気度を表示します。"
+
+msgid "trending_events"
+msgstr "人気のイベント"
+
+msgid "現在表示するデータがありません。"
+msgstr "現在表示するデータがありません。"
+
+msgid "イベントID"
+msgstr "イベントID"
+
+msgid "イベント名"
+msgstr "イベント名"
+
+msgid "お気に入り数"
+msgstr "お気に入り数"
+
+# Admin recommendation page additions
+msgid "クリック数"
+msgstr "クリック数"
+
+msgid "お気に入り率"
+msgstr "お気に入り率"
+
+msgid "イベントのクリック率とお気に入り率を確認できます。"
+msgstr "イベントのクリック率とお気に入り率を確認できます。"
+
+# Web Vitals admin page
+msgid "Core Web Vitals"
+msgstr "Core Web Vitals"
+
+msgid "最近のページ表示から収集された LCP / CLS / INP の平均値を表示します。"
+msgstr "最近のページ表示から収集された LCP / CLS / INP の平均値を表示します。"
+
+msgid "期間"
+msgstr "期間"
+
+msgid "当日"
+msgstr "当日"
+
+msgid "7日間"
+msgstr "7日間"
+
+msgid "30日間"
+msgstr "30日間"
+
+# Recommendation reasons for weighting factors
+msgid "人気度が高い"
+msgstr "人気度が高い"
+
+msgid "多くクリックされている"
+msgstr "多くクリックされている"
+
+msgid "新しいイベント"
+msgstr "新しいイベント"
+
+msgid "View"
+msgstr "ビュー"
+
+# Personalized recommendation reason for events not yet favourited
+msgid "まだお気に入りに追加していません"
+msgstr "まだお気に入りに追加していません"
+
+# Suffix appended to concatenated reasons (e.g. "...ためおすすめしています")
+msgid "ためおすすめしています"
+msgstr "ためおすすめしています"
+
+# Skip link text used by screen readers
+msgid "skip_to_main"
+msgstr "メインコンテンツへスキップ"
+
+# Stage24: Recommend Report admin page translations
+msgid "Recommend Report"
+msgstr "推薦クリックレポート"
+
+msgid "クリックレポート"
+msgstr "クリックレポート"
+
+msgid "Start Date"
+msgstr "開始日"
+
+msgid "End Date"
+msgstr "終了日"
+
+msgid "Filter"
+msgstr "フィルター"
+
+msgid "No data found for the selected period."
+msgstr "指定期間のデータはありません。"

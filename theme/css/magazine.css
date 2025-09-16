@@ -1,0 +1,62 @@
+/* magazine.css – dedicated styles for flipbook viewer */
+/* This stylesheet defines responsive layout and flipping animations for the magazine view. */
+
+.magazine-viewer{
+  position:fixed; inset:0;
+  display:none; align-items:center; justify-content:center;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+}
+.magazine-viewer .book{
+  position:relative;
+  width:min(72vh, 80vw);
+  height:min(82vh, 90vh);
+  perspective: 2000px;
+  transform-style: preserve-3d;
+  background: transparent;
+}
+.magazine-viewer .nav-arrow{
+  position:absolute; top:50%; transform: translateY(-50%);
+  font-size:32px; width:44px; height:44px; line-height:44px;
+  text-align:center; border-radius:50%;
+  background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.2);
+  cursor:pointer; user-select:none;
+  z-index:10002;
+}
+.magazine-viewer .nav-arrow.prev{ left:-60px; }
+.magazine-viewer .nav-arrow.next{ right:-60px; }
+.magazine-viewer .close-btn{
+  position:absolute; top:-56px; right:0;
+  width:40px; height:40px; border-radius:50%;
+  background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.2);
+  font-size:24px; line-height:40px; text-align:center; cursor:pointer;
+  z-index:10002;
+}
+.magazine-viewer .book .page{
+  position:absolute; inset:0;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+  overflow:hidden;
+  backface-visibility:hidden;
+  transform-origin:left center;
+  transform: rotateY(0deg);
+  transition: transform .7s ease, z-index .7s ease;
+}
+.magazine-viewer .book .page.flipped{
+  transform: rotateY(-180deg);
+}
+.magazine-viewer .page-content{
+  padding:1rem; height:100%; overflow:auto;
+}
+.magazine-grid{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:1rem; padding:1rem;
+}
+.magazine-card{
+  background:#fff; border-radius:12px; overflow:hidden; cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,.1); transition:transform .2s ease;
+}
+.magazine-card:hover{ transform: translateY(-2px); }
+.magazine-card img{ width:100%; height:220px; object-fit:cover; display:block; }
+.magazine-info{ padding:.5rem .75rem .9rem; }

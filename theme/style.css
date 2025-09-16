@@ -1,0 +1,18 @@
+/*
+Theme Name: RORO Mock Theme
+Theme URI: https://example.com/roro-mock-theme
+Author: ChatGPT Conversion
+Description: A WordPress theme converted from the provided RORO mockup.  This theme replicates the look and feel of the original static site including login, magazine, map, favorites, profile and AI assistant pages.  All colours and typography are drawn from the original CSS and the theme loads the existing CSS and JavaScript assets from the converted project.
+Version: 1.0
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: roro-mock-theme
+Tags: custom, responsive, bilingual
+*/
+
+/*
+ * The actual styling of the site lives in css/styles.css.  WordPress will
+ * enqueue this file via functions.php so we do not need to include any
+ * additional styles here.  This file exists primarily to provide the
+ * required theme header and metadata.
+ */
