@@ -8,6 +8,9 @@
 -- 付録A：WordPress 接頭辞互換ビューの作成
 -- 付録B：イベントテーブル（RORO_EVENTS_MASTER）に欠落している列を追加
 --        （id 列および event_date 列）し、既存データから event_date を補完します。
+--        `id` は自動採番にするため AUTO_INCREMENT 属性を付与し、MySQL 5.7 の制約
+--        （AUTO_INCREMENT 列は必ずインデックスを伴う必要がある【961941687783585†L131-L146】【628712530544714†L126-L133】）
+--        を満たすため UNIQUE 制約を併せて付与します。
 --
 -- このファイルは単独で実行可能です。データベースに対して実行する前に
 -- 必ずバックアップを取得してください。
@@ -67,8 +70,17 @@ SET @has_id := (
     AND COLUMN_NAME = 'id'
 );
 
+--
+-- MySQL requires that any AUTO_INCREMENT column be indexed.  Without
+-- a primary key or unique index, adding an AUTO_INCREMENT column will
+-- raise error 1075 (“there can be only one auto column and it must be
+-- defined as a key”).  To satisfy this requirement without
+-- disturbing the existing primary key (which is based on `event_id`),
+-- we define the new `id` column with the `UNIQUE` attribute.  This
+-- implicitly creates a unique index on the column as part of the
+-- `ALTER TABLE` statement【961941687783585†L131-L146】【628712530544714†L126-L133】.
 SET @sql := IF(@has_id = 0,
-  'ALTER TABLE `RORO_EVENTS_MASTER` ADD COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT FIRST;',
+  'ALTER TABLE `RORO_EVENTS_MASTER` ADD COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE FIRST;',
   'SELECT 1;'
 );
 PREPARE stmt FROM @sql;

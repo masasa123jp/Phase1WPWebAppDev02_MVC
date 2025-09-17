@@ -1,39 +1,78 @@
--- 04_add_spots_numeric_id.sql
+-- 04_add_spots_numeric_id.sql (revised)
 --
--- Introduces a numeric auto‑increment `id` column on the RORO_TRAVEL_SPOT_MASTER table and
--- ensures that the existing string identifier `TSM_ID` has a unique index.  Because
--- MySQL lacks native support for `ADD COLUMN IF NOT EXISTS`, we perform explicit
--- existence checks before running the ALTER statements.  Running this script
--- repeatedly will not raise errors.
+-- 目的:
+--   1) RORO_TRAVEL_SPOT_MASTER に数値オートインクリメント列 `id` を追加
+--   2) `TSM_ID` の一意性が保てる場合のみ UNIQUE を付与
+--      重複がある場合は通常 INDEX を付与（UNIQUE は作らない）
+-- ポイント:
+--   - MySQL 5.7 では AUTO_INCREMENT 列にはインデックスが必須のため、
+--     `id` を追加する際に UNIQUE を併記して満たす。
+--   - すべて INFORMATION_SCHEMA で存在確認し、冪等に実行できる。
 
--- ------------------------------------------------------------------
--- 1. Add numeric `id` column if it does not exist
+/* ------------------------------------------------------------------
+ * 1) `id` 列の追加（存在しなければ追加）
+ * ------------------------------------------------------------------ */
 SET @col_exists := (
   SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'RORO_TRAVEL_SPOT_MASTER'
-    AND COLUMN_NAME = 'id'
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME   = 'RORO_TRAVEL_SPOT_MASTER'
+     AND COLUMN_NAME  = 'id'
 );
+
+-- AUTO_INCREMENT 列には索引が必要なため、UNIQUE を併記して追加する
 SET @sql := IF(@col_exists = 0,
-  'ALTER TABLE `RORO_TRAVEL_SPOT_MASTER` ADD COLUMN `id` INT NOT NULL AUTO_INCREMENT FIRST;',
+  'ALTER TABLE `RORO_TRAVEL_SPOT_MASTER` '                                                   --
+  'ADD COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE FIRST;',
   'SELECT 1;'
 );
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- 2. Add unique key on TSM_ID if it does not exist
-SET @idx_exists := (
+/* ------------------------------------------------------------------
+ * 2) `TSM_ID` の一意化/インデックス付与
+ *    - 重複が 0 件なら UNIQUE を作成
+ *    - 重複があるなら UNIQUE は作らず、通常の INDEX を作成
+ * ------------------------------------------------------------------ */
+
+-- 2-1) 既に UNIQUE あり？（uniq_tsm_id）
+SET @uniq_exists := (
   SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-  WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'RORO_TRAVEL_SPOT_MASTER'
-    AND INDEX_NAME = 'uniq_tsm_id'
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME   = 'RORO_TRAVEL_SPOT_MASTER'
+     AND INDEX_NAME   = 'uniq_tsm_id'
 );
-SET @sql := IF(@idx_exists = 0,
+
+-- 2-2) `TSM_ID` の重複件数を取得
+SET @tsm_dups := (
+  SELECT COUNT(*) FROM (
+    SELECT `TSM_ID`
+      FROM `RORO_TRAVEL_SPOT_MASTER`
+     GROUP BY `TSM_ID`
+    HAVING COUNT(*) > 1
+  ) AS d
+);
+
+-- 2-3) 重複 0 かつ UNIQUE 未作成なら UNIQUE を作成
+SET @sql := IF(@uniq_exists = 0 AND @tsm_dups = 0,
   'ALTER TABLE `RORO_TRAVEL_SPOT_MASTER` ADD UNIQUE KEY `uniq_tsm_id` (`TSM_ID`);',
   'SELECT 1;'
 );
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- Note: If you require the `id` column to be the primary key, you may
--- perform an additional `ALTER TABLE ... ADD PRIMARY KEY (id)` after
--- existing primary keys are resolved.  This script adds the column and
--- unique index only, matching the original migration.
+-- 2-4) 重複がある場合は通常 INDEX（idx_tsm_id）を作成（無ければ）
+SET @idx_exists := (
+  SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+   WHERE TABLE_SCHEMA = DATABASE()
+     AND TABLE_NAME   = 'RORO_TRAVEL_SPOT_MASTER'
+     AND INDEX_NAME   = 'idx_tsm_id'
+);
+SET @sql := IF(@tsm_dups > 0 AND @idx_exists = 0,
+  'CREATE INDEX `idx_tsm_id` ON `RORO_TRAVEL_SPOT_MASTER`(`TSM_ID`);',
+  'SELECT 1;'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- 実行状況の参考情報を返す（phpMyAdmin で結果を確認できます）
+SELECT
+  @col_exists   AS existed_id_column_before,
+  @tsm_dups     AS tsm_id_duplicate_count,
+  @uniq_exists  AS uniq_tsm_id_index_existed_before;
