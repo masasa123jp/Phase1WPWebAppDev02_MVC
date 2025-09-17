@@ -1,12 +1,10 @@
 /* =======================================================================
-   Project RORO - DDL_20250830_INTEGRATED.sql
+   Project RORO - DDL_20250822_FINAL.sql  (Integrated 2025-08-18 + 2025-08-22)
    MySQL 8.x / utf8mb4 / utf8mb4_unicode_520_ci
    Policy:
-     - Canonical table names = RORO_*
-     - Remain customer-centric; WP link via RORO_USER_LINK_WP
-     - Address: add RORO_ADDRESS (1:n)
-     - RORO_BREED_MASTER: add multilingual names
-     - RORO_PET: add pet_name/neutered/notes/is_active/updated_at/photo_url
+     - Canonical table names = RORO_*  (non-prefixed)
+     - Drop duplicated wp_roro_* tables and create compatibility views
+     - No CREATE DATABASE; apply to existing WP database
    ======================================================================= */
 
 SET NAMES utf8mb4;
@@ -14,7 +12,8 @@ SET @roro_collation := 'utf8mb4_unicode_520_ci';
 SET FOREIGN_KEY_CHECKS=0;
 
 /* -----------------------------------------------------------
-   0) 互換: 旧 wp_roro_* を掃除（必要なら事前退避）
+   0) 互換: 既存の wp_roro_* テーブルがあれば削除（空想定）
+      ※データがある場合は事前移行のうえ実行してください
    ----------------------------------------------------------- */
 DROP TABLE IF EXISTS `wp_roro_ai_conversation`;
 DROP TABLE IF EXISTS `wp_roro_ai_message`;
@@ -31,34 +30,42 @@ DROP TABLE IF EXISTS `wp_roro_travel_spot_master`;
 CREATE TABLE IF NOT EXISTS RORO_CATEGORY_MASTER (
   category_code   VARCHAR(32)   NOT NULL COMMENT 'カテゴリコード（例:A/B/C...）',
   category_name   VARCHAR(255)  NULL COMMENT '表示名',
+  -- 以下を追加：カテゴリ表示名の多言語カラム（英／中／韓）。既存の日本語カラムは category_name で保持
+  category_name_en VARCHAR(255) NULL COMMENT '表示名（英語）',
+  category_name_zh VARCHAR(255) NULL COMMENT '表示名（中国語）',
+  category_name_ko VARCHAR(255) NULL COMMENT '表示名（韓国語）',
   sort_order      INT           NULL COMMENT '並び順',
   created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_RORO_CATEGORY_MASTER PRIMARY KEY (category_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='カテゴリ小マスタ';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='カテゴリ小マスタ';
 
 CREATE TABLE IF NOT EXISTS RORO_BREED_MASTER (
-  BREEDM_ID              VARCHAR(32)   NOT NULL COMMENT 'ペット種ID',
-  pet_type               ENUM('DOG','CAT','OTHER') NOT NULL COMMENT 'DOG/CAT/OTHER',
-  breed_name_ja          VARCHAR(255)  NULL,
-  breed_name_en          VARCHAR(255)  NULL,
-  breed_name_zh          VARCHAR(255)  NULL,
-  breed_name_ko          VARCHAR(255)  NULL,
-  category_code          VARCHAR(32)   NULL COMMENT '→ RORO_CATEGORY_MASTER.category_code',
-  population             INT           NULL,
-  population_rate        DECIMAL(6,3)  NULL,
-  category_description   VARCHAR(255)  NULL,
-  old_category           VARCHAR(64)   NULL,
-  created_at             DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at             DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  BREEDM_ID            VARCHAR(32)   NOT NULL COMMENT '犬猫等ペット種ID（ER図のBREEDM_ID）',
+  pet_type             ENUM('DOG','CAT','OTHER') NOT NULL COMMENT 'DOG/CAT/OTHER',
+  breed_name           VARCHAR(255)  NOT NULL COMMENT '種名/犬種名',
+  -- 多言語版の種名
+  breed_name_en        VARCHAR(255)  NULL COMMENT '種名/犬種名（英語）',
+  breed_name_zh        VARCHAR(255)  NULL COMMENT '種名/犬種名（中国語）',
+  breed_name_ko        VARCHAR(255)  NULL COMMENT '種名/犬種名（韓国語）',
+  category_code        VARCHAR(32)   NOT NULL COMMENT '→ RORO_CATEGORY_MASTER.category_code',
+  population           INT           NULL,
+  population_rate      DECIMAL(6,3)  NULL,
+  category_description VARCHAR(255)  NULL,
+  -- 多言語版のカテゴリ説明
+  category_description_en VARCHAR(255) NULL COMMENT 'カテゴリ説明（英語）',
+  category_description_zh VARCHAR(255) NULL COMMENT 'カテゴリ説明（中国語）',
+  category_description_ko VARCHAR(255) NULL COMMENT 'カテゴリ説明（韓国語）',
+  old_category         VARCHAR(64)   NULL,
+  created_at           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_RORO_BREED_MASTER PRIMARY KEY (BREEDM_ID),
   INDEX IDX_RBM_CATEGORY (category_code),
-  INDEX IDX_RBM_TYPE_NAME_JA (pet_type, breed_name_ja),
-  INDEX IDX_RBM_TYPE_NAME_EN (pet_type, breed_name_en),
+  INDEX IDX_RBM_TYPE_NAME (pet_type, breed_name),
   CONSTRAINT FK_RBM_CATEGORY
     FOREIGN KEY (category_code) REFERENCES RORO_CATEGORY_MASTER(category_code)
-    ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='ペット種マスタ（多言語対応＋カテゴリ参照）';
+    ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='ペット種マスタ（カテゴリ紐付け）';
 
 /* ===========================================================
    2) 顧客／WPリンク／認証
@@ -82,7 +89,7 @@ CREATE TABLE IF NOT EXISTS RORO_CUSTOMER (
   CONSTRAINT UK_RORO_CUSTOMER_EMAIL UNIQUE (email),
   INDEX IDX_RORO_CUSTOMER_LOCATION (prefecture, city),
   INDEX IDX_RORO_CUSTOMER_DEFAULTPET (default_pet_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='顧客';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='顧客';
 
 CREATE TABLE IF NOT EXISTS RORO_USER_LINK_WP (
   customer_id     INT          NOT NULL,
@@ -93,13 +100,13 @@ CREATE TABLE IF NOT EXISTS RORO_USER_LINK_WP (
   CONSTRAINT FK_RORO_USER_LINK_WP_CUSTOMER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='顧客とWPユーザーの遅延リンク';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='顧客とWPユーザーの遅延リンク';
 
 CREATE TABLE IF NOT EXISTS RORO_AUTH_ACCOUNT (
   account_id       BIGINT       NOT NULL AUTO_INCREMENT,
   customer_id      INT          NOT NULL,
   provider         ENUM('local','google','line','apple','facebook') NOT NULL DEFAULT 'local',
-  provider_user_id VARCHAR(255) NOT NULL COMMENT '外部/ローカルのユーザーID',
+  provider_user_id VARCHAR(255) NOT NULL COMMENT '外部/ローカルのユーザーID（ローカルは内部IDやメール等）',
   email            VARCHAR(255) NULL,
   email_verified   TINYINT(1)   NOT NULL DEFAULT 0,
   password_hash    VARCHAR(255) NULL COMMENT 'local時のみ',
@@ -113,7 +120,7 @@ CREATE TABLE IF NOT EXISTS RORO_AUTH_ACCOUNT (
   CONSTRAINT FK_AUTH_ACCOUNT_CUSTOMER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='認証アカウント';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='認証アカウント（surrogate key維持）';
 
 CREATE TABLE IF NOT EXISTS RORO_AUTH_SESSION (
   session_id         BIGINT      NOT NULL AUTO_INCREMENT,
@@ -136,7 +143,7 @@ CREATE TABLE IF NOT EXISTS RORO_AUTH_SESSION (
   CONSTRAINT FK_AUTH_SESSION_CUSTOMER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='認証セッション';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='認証セッション';
 
 CREATE TABLE IF NOT EXISTS RORO_AUTH_TOKEN (
   token_id       BIGINT       NOT NULL AUTO_INCREMENT,
@@ -155,37 +162,10 @@ CREATE TABLE IF NOT EXISTS RORO_AUTH_TOKEN (
   CONSTRAINT FK_AUTH_TOKEN_CUSTOMER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='認証トークン';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='認証トークン（顧客参照）';
 
 /* ===========================================================
-   3) 住所（追加）
-   =========================================================== */
-CREATE TABLE IF NOT EXISTS RORO_ADDRESS (
-  address_id     INT           NOT NULL AUTO_INCREMENT,
-  customer_id    INT           NOT NULL,
-  addr_type      ENUM('home','shipping','billing','other') NOT NULL DEFAULT 'home',
-  country_code   VARCHAR(2)    NULL,
-  postal_code    CHAR(7)       NULL,
-  prefecture     VARCHAR(64)   NULL,
-  city           VARCHAR(128)  NULL,
-  address_line1  VARCHAR(255)  NULL,
-  address_line2  VARCHAR(255)  NULL,
-  building       VARCHAR(255)  NULL,
-  lat            DECIMAL(10,7) NULL,
-  lng            DECIMAL(10,7) NULL,
-  is_primary     TINYINT(1)    NOT NULL DEFAULT 0,
-  created_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT PK_RORO_ADDRESS PRIMARY KEY (address_id),
-  INDEX IDX_RADDR_CUST_TYPE (customer_id, addr_type, is_primary),
-  INDEX IDX_RADDR_LATLNG (lat, lng),
-  CONSTRAINT FK_RADDR_CUSTOMER
-    FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
-    ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='住所（1:n）';
-
-/* ===========================================================
-   4) 飼育ペット／写真
+   3) 飼育ペット／写真
    =========================================================== */
 CREATE TABLE IF NOT EXISTS RORO_PET (
   pet_id              BIGINT       NOT NULL AUTO_INCREMENT,
@@ -193,28 +173,25 @@ CREATE TABLE IF NOT EXISTS RORO_PET (
   species             ENUM('DOG','CAT','OTHER') NOT NULL,
   BREEDM_ID           VARCHAR(32)  NULL COMMENT '→ RORO_BREED_MASTER.BREEDM_ID',
   breed_label         VARCHAR(255) NULL,
-  pet_name            VARCHAR(255) NULL,
+  -- 多言語版の表示ラベル
+  breed_label_en      VARCHAR(255) NULL COMMENT '表示ラベル（英語）',
+  breed_label_zh      VARCHAR(255) NULL COMMENT '表示ラベル（中国語）',
+  breed_label_ko      VARCHAR(255) NULL COMMENT '表示ラベル（韓国語）',
   sex                 ENUM('unknown','male','female') NOT NULL DEFAULT 'unknown',
   birth_date          DATE         NULL,
   weight_kg           DECIMAL(5,2) NULL,
-  neutered            TINYINT(1)   NULL,
   photo_attachment_id BIGINT       NULL,
-  photo_url           VARCHAR(512) NULL,
-  notes               TEXT         NULL,
-  is_active           TINYINT(1)   NOT NULL DEFAULT 1,
   created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_RORO_PET PRIMARY KEY (pet_id),
   INDEX IDX_RORO_PET_OWNER (customer_id),
   INDEX IDX_RORO_PET_BREED (BREEDM_ID),
-  INDEX IDX_RORO_PET_ACTIVE (customer_id, is_active),
   CONSTRAINT FK_RORO_PET_OWNER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT FK_RORO_PET_BREED
     FOREIGN KEY (BREEDM_ID) REFERENCES RORO_BREED_MASTER(BREEDM_ID)
     ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='飼育ペット';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='飼育ペット';
 
 CREATE TABLE IF NOT EXISTS RORO_PHOTO (
   photo_id       BIGINT       NOT NULL AUTO_INCREMENT,
@@ -224,6 +201,10 @@ CREATE TABLE IF NOT EXISTS RORO_PHOTO (
   source_id      VARCHAR(64)  NULL COMMENT 'GMAPM_ID / TSM_ID|branch など',
   storage_key    VARCHAR(512) NOT NULL COMMENT 'オブジェクトストレージキー/パス',
   caption        TEXT         NULL,
+  -- 写真キャプションの多言語カラム
+  caption_en     TEXT         NULL COMMENT 'キャプション（英語）',
+  caption_zh     TEXT         NULL COMMENT 'キャプション（中国語）',
+  caption_ko     TEXT         NULL COMMENT 'キャプション（韓国語）',
   isVisible      TINYINT(1)   NOT NULL DEFAULT 1,
   created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT PK_RORO_PHOTO PRIMARY KEY (photo_id),
@@ -236,29 +217,57 @@ CREATE TABLE IF NOT EXISTS RORO_PHOTO (
   CONSTRAINT FK_RORO_PHOTO_PET
     FOREIGN KEY (pet_id) REFERENCES RORO_PET(pet_id)
     ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='写真';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='写真';
 
 /* ===========================================================
-   5) 施設ソース
+   4) 施設ソース（独立運用）
    =========================================================== */
 CREATE TABLE IF NOT EXISTS RORO_GOOGLE_MAPS_MASTER (
   GMAPM_ID            VARCHAR(64)  NOT NULL,
   name                VARCHAR(255) NOT NULL,
+  -- 多言語版施設名
+  name_en             VARCHAR(255) NULL COMMENT '施設名（英語）',
+  name_zh             VARCHAR(255) NULL COMMENT '施設名（中国語）',
+  name_ko             VARCHAR(255) NULL COMMENT '施設名（韓国語）',
   prefecture          VARCHAR(64)  NULL,
+  prefecture_en       VARCHAR(64)  NULL COMMENT '都道府県（英語）',
+  prefecture_zh       VARCHAR(64)  NULL COMMENT '都道府県（中国語）',
+  prefecture_ko       VARCHAR(64)  NULL COMMENT '都道府県（韓国語）',
   region              VARCHAR(64)  NULL,
+  region_en           VARCHAR(64)  NULL COMMENT '地域（英語）',
+  region_zh           VARCHAR(64)  NULL COMMENT '地域（中国語）',
+  region_ko           VARCHAR(64)  NULL COMMENT '地域（韓国語）',
   genre               VARCHAR(64)  NULL,
+  genre_en            VARCHAR(64)  NULL COMMENT 'ジャンル（英語）',
+  genre_zh            VARCHAR(64)  NULL COMMENT 'ジャンル（中国語）',
+  genre_ko            VARCHAR(64)  NULL COMMENT 'ジャンル（韓国語）',
   postal_code         VARCHAR(16)  NULL,
   address             VARCHAR(255) NULL,
+  address_en          VARCHAR(255) NULL COMMENT '住所（英語）',
+  address_zh          VARCHAR(255) NULL COMMENT '住所（中国語）',
+  address_ko          VARCHAR(255) NULL COMMENT '住所（韓国語）',
   phone               VARCHAR(64)  NULL,
   opening_time        VARCHAR(64)  NULL,
+  opening_time_en     VARCHAR(64)  NULL COMMENT '開店時間（英語）',
+  opening_time_zh     VARCHAR(64)  NULL COMMENT '開店時間（中国語）',
+  opening_time_ko     VARCHAR(64)  NULL COMMENT '開店時間（韓国語）',
   closing_time        VARCHAR(64)  NULL,
+  closing_time_en     VARCHAR(64)  NULL COMMENT '閉店時間（英語）',
+  closing_time_zh     VARCHAR(64)  NULL COMMENT '閉店時間（中国語）',
+  closing_time_ko     VARCHAR(64)  NULL COMMENT '閉店時間（韓国語）',
   latitude            DECIMAL(10,7) NULL,
   longitude           DECIMAL(10,7) NULL,
   source_url          VARCHAR(512) NULL,
   review              TEXT          NULL,
+  review_en           TEXT          NULL COMMENT 'レビュー（英語）',
+  review_zh           TEXT          NULL COMMENT 'レビュー（中国語）',
+  review_ko           TEXT          NULL COMMENT 'レビュー（韓国語）',
   google_rating       DECIMAL(3,2)  NULL,
   google_review_count INT           NULL,
   description         TEXT          NULL,
+  description_en      TEXT          NULL COMMENT '説明（英語）',
+  description_zh      TEXT          NULL COMMENT '説明（中国語）',
+  description_ko      TEXT          NULL COMMENT '説明（韓国語）',
   category_code       VARCHAR(32)   NULL COMMENT '→ RORO_CATEGORY_MASTER.category_code',
   pet_allowed         TINYINT(1)    NULL,
   isVisible           TINYINT(1)    NOT NULL DEFAULT 1,
@@ -273,20 +282,44 @@ CREATE TABLE IF NOT EXISTS RORO_GOOGLE_MAPS_MASTER (
   CONSTRAINT FK_RORO_GMAPM_CATEGORY
     FOREIGN KEY (category_code) REFERENCES RORO_CATEGORY_MASTER(category_code)
     ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='施設（Google Mapsソース）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='施設（Google Mapsソース）';
 
 CREATE TABLE IF NOT EXISTS RORO_TRAVEL_SPOT_MASTER (
   TSM_ID              VARCHAR(64)  NOT NULL,
   branch_no           INT          NOT NULL DEFAULT 0,
   prefecture          VARCHAR(64)  NULL,
+  prefecture_en       VARCHAR(64)  NULL COMMENT '都道府県（英語）',
+  prefecture_zh       VARCHAR(64)  NULL COMMENT '都道府県（中国語）',
+  prefecture_ko       VARCHAR(64)  NULL COMMENT '都道府県（韓国語）',
   region              VARCHAR(64)  NULL,
+  region_en           VARCHAR(64)  NULL COMMENT '地域（英語）',
+  region_zh           VARCHAR(64)  NULL COMMENT '地域（中国語）',
+  region_ko           VARCHAR(64)  NULL COMMENT '地域（韓国語）',
   spot_area           VARCHAR(128) NULL,
+  spot_area_en        VARCHAR(128) NULL COMMENT 'スポットエリア（英語）',
+  spot_area_zh        VARCHAR(128) NULL COMMENT 'スポットエリア（中国語）',
+  spot_area_ko        VARCHAR(128) NULL COMMENT 'スポットエリア（韓国語）',
   genre               VARCHAR(64)  NULL,
+  genre_en            VARCHAR(64)  NULL COMMENT 'ジャンル（英語）',
+  genre_zh            VARCHAR(64)  NULL COMMENT 'ジャンル（中国語）',
+  genre_ko            VARCHAR(64)  NULL COMMENT 'ジャンル（韓国語）',
   name                VARCHAR(255) NOT NULL,
+  name_en             VARCHAR(255) NULL COMMENT '施設名（英語）',
+  name_zh             VARCHAR(255) NULL COMMENT '施設名（中国語）',
+  name_ko             VARCHAR(255) NULL COMMENT '施設名（韓国語）',
   phone               VARCHAR(64)  NULL,
   address             VARCHAR(255) NULL,
+  address_en          VARCHAR(255) NULL COMMENT '住所（英語）',
+  address_zh          VARCHAR(255) NULL COMMENT '住所（中国語）',
+  address_ko          VARCHAR(255) NULL COMMENT '住所（韓国語）',
   opening_time        VARCHAR(64)  NULL,
+  opening_time_en     VARCHAR(64)  NULL COMMENT '開店時間（英語）',
+  opening_time_zh     VARCHAR(64)  NULL COMMENT '開店時間（中国語）',
+  opening_time_ko     VARCHAR(64)  NULL COMMENT '開店時間（韓国語）',
   closing_time        VARCHAR(64)  NULL,
+  closing_time_en     VARCHAR(64)  NULL COMMENT '閉店時間（英語）',
+  closing_time_zh     VARCHAR(64)  NULL COMMENT '閉店時間（中国語）',
+  closing_time_ko     VARCHAR(64)  NULL COMMENT '閉店時間（韓国語）',
   url                 VARCHAR(512) NULL,
   latitude            DECIMAL(10,7) NULL,
   longitude           DECIMAL(10,7) NULL,
@@ -294,6 +327,9 @@ CREATE TABLE IF NOT EXISTS RORO_TRAVEL_SPOT_MASTER (
   google_review_count INT           NULL,
   english_support     TINYINT(1)    NULL,
   review              TEXT          NULL,
+  review_en           TEXT          NULL COMMENT 'レビュー（英語）',
+  review_zh           TEXT          NULL COMMENT 'レビュー（中国語）',
+  review_ko           TEXT          NULL COMMENT 'レビュー（韓国語）',
   category_code       VARCHAR(32)   NULL COMMENT '論理参照: RORO_CATEGORY_MASTER.category_code',
   isVisible           TINYINT(1)    NOT NULL DEFAULT 1,
   source_updated_at   DATETIME      NULL,
@@ -303,19 +339,53 @@ CREATE TABLE IF NOT EXISTS RORO_TRAVEL_SPOT_MASTER (
   INDEX IDX_RORO_TRAVEL_SPOT_BASIC (prefecture, region, genre),
   INDEX IDX_RORO_TRAVEL_SPOT_LATLNG (latitude, longitude),
   INDEX IDX_RORO_TRAVEL_SPOT_CATEGORY (category_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='観光スポット';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='観光スポット（外部ソース/論理参照あり）';
+
+CREATE TABLE IF NOT EXISTS RORO_MAP_FAVORITE (
+  favorite_id     BIGINT       NOT NULL AUTO_INCREMENT,
+  customer_id     INT          NOT NULL,
+  target_type     ENUM('gmapm','travel_spot','custom') NOT NULL,
+  source_id       VARCHAR(64)  NULL COMMENT '対象ソースID（gmapm/travel_spット時）',
+  label           VARCHAR(255) NULL,
+  label_en        VARCHAR(255) NULL COMMENT 'ラベル（英語）',
+  label_zh        VARCHAR(255) NULL COMMENT 'ラベル（中国語）',
+  label_ko        VARCHAR(255) NULL COMMENT 'ラベル（韓国語）',
+  lat             DECIMAL(10,7) NULL COMMENT 'custom時に使用',
+  lng             DECIMAL(10,7) NULL COMMENT 'custom時に使用',
+  isVisible       TINYINT(1)   NOT NULL DEFAULT 1,
+  created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT PK_RORO_MAP_FAVORITE PRIMARY KEY (favorite_id),
+  INDEX IDX_RMF_CUSTOMER (customer_id),
+  INDEX IDX_RMF_TARGET (target_type, source_id),
+  INDEX IDX_RMF_CUSTOM_PT (lat, lng),
+  CONSTRAINT FK_RMF_CUSTOMER
+    FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='地図お気に入り';
 
 /* ===========================================================
-   6) 記事/カテゴリ連携（＋推薦セット管理）
+   5) 記事/カテゴリ連携（+ 推薦セット管理）
    =========================================================== */
 CREATE TABLE IF NOT EXISTS RORO_ONE_POINT_ADVICE_MASTER (
   OPAM_ID         VARCHAR(64)  NOT NULL,
   pet_type        ENUM('DOG','CAT','OTHER') NOT NULL,
   category_code   VARCHAR(32)  NULL,
   title           VARCHAR(255) NOT NULL,
+  -- 多言語版タイトル
+  title_en        VARCHAR(255) NULL COMMENT 'タイトル（英語）',
+  title_zh        VARCHAR(255) NULL COMMENT 'タイトル（中国語）',
+  title_ko        VARCHAR(255) NULL COMMENT 'タイトル（韓国語）',
   body            MEDIUMTEXT   NULL,
+  -- 多言語版本文
+  body_en         MEDIUMTEXT   NULL COMMENT '本文（英語）',
+  body_zh         MEDIUMTEXT   NULL COMMENT '本文（中国語）',
+  body_ko         MEDIUMTEXT   NULL COMMENT '本文（韓国語）',
   url             VARCHAR(512) NULL,
   for_which_pets  VARCHAR(255) NULL,
+  -- 多言語版：対象ペット
+  for_which_pets_en VARCHAR(255) NULL COMMENT '対象ペット（英語）',
+  for_which_pets_zh VARCHAR(255) NULL COMMENT '対象ペット（中国語）',
+  for_which_pets_ko VARCHAR(255) NULL COMMENT '対象ペット（韓国語）',
   isVisible       TINYINT(1)   NOT NULL DEFAULT 1,
   created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -324,20 +394,20 @@ CREATE TABLE IF NOT EXISTS RORO_ONE_POINT_ADVICE_MASTER (
   CONSTRAINT FK_RORO_OPAM_CATEGORY
     FOREIGN KEY (category_code) REFERENCES RORO_CATEGORY_MASTER(category_code)
     ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='記事/アドバイス';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='記事/アドバイス(OPAM)';
 
 CREATE TABLE IF NOT EXISTS RORO_CATEGORY_DATA_LINK_MASTER (
-  CDLM_ID       VARCHAR(64)  NOT NULL COMMENT '例: CATEGORY_A_000001',
-  pet_type      ENUM('DOG','CAT','OTHER') NOT NULL,
-  OPAM_ID       VARCHAR(64)  NULL COMMENT '→ RORO_ONE_POINT_ADVICE_MASTER.OPAM_ID',
-  category_code VARCHAR(32)  NOT NULL COMMENT '→ RORO_CATEGORY_MASTER.category_code',
-  GMAPM_ID      VARCHAR(64)  NULL COMMENT '→ RORO_GOOGLE_MAPS_MASTER.GMAPM_ID（FK無し）',
-  as_of_date    DATE         NOT NULL COMMENT 'このセット定義の有効日',
-  version_no    INT          NOT NULL DEFAULT 1 COMMENT '版',
-  is_current    TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'カテゴリ×pet_type内の現行版',
-  isVisible     TINYINT(1)   NOT NULL DEFAULT 1,
-  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CDLM_ID      VARCHAR(64)  NOT NULL COMMENT '例: CATEGORY_A_000001',
+  pet_type     ENUM('DOG','CAT','OTHER') NOT NULL,
+  OPAM_ID      VARCHAR(64)  NULL COMMENT '→ RORO_ONE_POINT_ADVICE_MASTER.OPAM_ID',
+  category_code VARCHAR(32) NOT NULL COMMENT '→ RORO_CATEGORY_MASTER.category_code',
+  GMAPM_ID     VARCHAR(64)  NULL COMMENT '→ RORO_GOOGLE_MAPS_MASTER.GMAPM_ID（FK無し）',
+  as_of_date   DATE         NOT NULL COMMENT 'このセット定義の有効日',
+  version_no   INT          NOT NULL DEFAULT 1 COMMENT '版',
+  is_current   TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'カテゴリ×pet_type内の現行版',
+  isVisible    TINYINT(1)   NOT NULL DEFAULT 1,
+  created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT PK_RORO_CATEGORY_DATA_LINK_MASTER PRIMARY KEY (CDLM_ID, pet_type, version_no),
   INDEX IDX_CDL_CATEGORY_CURRENT (category_code, pet_type, is_current),
   INDEX IDX_CDL_OPAM (OPAM_ID),
@@ -349,11 +419,12 @@ CREATE TABLE IF NOT EXISTS RORO_CATEGORY_DATA_LINK_MASTER (
   CONSTRAINT FK_CDL_OPAM
     FOREIGN KEY (OPAM_ID) REFERENCES RORO_ONE_POINT_ADVICE_MASTER(OPAM_ID)
     ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='カテゴリ⇔OPAM/お店（推薦セット、版管理）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='カテゴリ⇔OPAM/お店（推薦セット、版管理）';
 
 CREATE OR REPLACE VIEW V_RORO_CATEGORY_DATA_LINK_MASTER AS
 SELECT
-  CDLM_ID, pet_type, OPAM_ID, category_code, GMAPM_ID,
+  CDLM_ID,
+  pet_type, OPAM_ID, category_code, GMAPM_ID,
   as_of_date, version_no, is_current, isVisible,
   created_at, updated_at
 FROM RORO_CATEGORY_DATA_LINK_MASTER;
@@ -399,17 +470,17 @@ END$$
 DELIMITER ;
 
 /* ===========================================================
-   7) レコメンド履歴
+   6) レコメンド履歴
    =========================================================== */
 CREATE TABLE IF NOT EXISTS RORO_RECOMMENDATION_LOG (
   rec_id          BIGINT       NOT NULL AUTO_INCREMENT,
   customer_id     INT          NOT NULL COMMENT '→ RORO_CUSTOMER',
   rec_date        DATE         NOT NULL COMMENT '推薦日(YYYY-MM-DD)',
-  CDLM_ID         VARCHAR(64)  NOT NULL COMMENT '論理参照: RORO_CATEGORY_DATA_LINK_MASTER.CDLM_ID',
-  pet_type        ENUM('DOG','CAT','OTHER') NOT NULL COMMENT '冗長保持',
-  category_code   VARCHAR(32)  NOT NULL COMMENT '冗長保持',
-  OPAM_ID         VARCHAR(64)  NULL COMMENT '冗長保持',
-  GMAPM_ID        VARCHAR(64)  NULL COMMENT '冗長保持',
+  CDLM_ID         VARCHAR(64)  NOT NULL COMMENT '→ RORO_CATEGORY_DATA_LINK_MASTER.CDLM_ID（論理参照）',
+  pet_type        ENUM('DOG','CAT','OTHER') NOT NULL COMMENT '冗長保持（CDLと一致）',
+  category_code   VARCHAR(32)  NOT NULL COMMENT '冗長保持（CDLと一致）',
+  OPAM_ID         VARCHAR(64)  NULL COMMENT '冗長保持（必要に応じ）',
+  GMAPM_ID        VARCHAR(64)  NULL COMMENT '冗長保持（必要に応じ）',
   rank            INT          NOT NULL DEFAULT 1 COMMENT '提示順位',
   status          ENUM('planned','delivered','seen','clicked','dismissed','converted') NOT NULL DEFAULT 'planned',
   reason          JSON         NULL,
@@ -428,7 +499,7 @@ CREATE TABLE IF NOT EXISTS RORO_RECOMMENDATION_LOG (
   CONSTRAINT FK_RRL_CUSTOMER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='レコメンド履歴';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='レコメンド履歴（ログのみで運用）';
 
 DROP TRIGGER IF EXISTS TR_RRL_BEFORE_INS;
 DELIMITER $$
@@ -449,17 +520,36 @@ END$$
 DELIMITER ;
 
 /* ===========================================================
-   8) イベント
+   7) イベント
    =========================================================== */
 CREATE TABLE IF NOT EXISTS RORO_EVENTS_MASTER (
   event_id     VARCHAR(50)  NOT NULL,
   name         VARCHAR(255) NOT NULL,
+  -- 多言語版イベント名
+  name_en      VARCHAR(255) NULL COMMENT 'イベント名（英語）',
+  name_zh      VARCHAR(255) NULL COMMENT 'イベント名（中国語）',
+  name_ko      VARCHAR(255) NULL COMMENT 'イベント名（韓国語）',
   date         VARCHAR(50)  NULL,
   location     VARCHAR(255) NULL,
+  location_en  VARCHAR(255) NULL COMMENT '場所（英語）',
+  location_zh  VARCHAR(255) NULL COMMENT '場所（中国語）',
+  location_ko  VARCHAR(255) NULL COMMENT '場所（韓国語）',
   venue        VARCHAR(255) NULL,
+  venue_en     VARCHAR(255) NULL COMMENT '会場（英語）',
+  venue_zh     VARCHAR(255) NULL COMMENT '会場（中国語）',
+  venue_ko     VARCHAR(255) NULL COMMENT '会場（韓国語）',
   address      VARCHAR(255) NULL,
+  address_en   VARCHAR(255) NULL COMMENT '住所（英語）',
+  address_zh   VARCHAR(255) NULL COMMENT '住所（中国語）',
+  address_ko   VARCHAR(255) NULL COMMENT '住所（韓国語）',
   prefecture   VARCHAR(50)  NULL,
+  prefecture_en VARCHAR(50)  NULL COMMENT '都道府県（英語）',
+  prefecture_zh VARCHAR(50)  NULL COMMENT '都道府県（中国語）',
+  prefecture_ko VARCHAR(50)  NULL COMMENT '都道府県（韓国語）',
   city         VARCHAR(50)  NULL,
+  city_en      VARCHAR(50)  NULL COMMENT '市区町村（英語）',
+  city_zh      VARCHAR(50)  NULL COMMENT '市区町村（中国語）',
+  city_ko      VARCHAR(50)  NULL COMMENT '市区町村（韓国語）',
   lat          DOUBLE       NULL,
   lon          DOUBLE       NULL,
   source       VARCHAR(50)  NULL,
@@ -472,10 +562,10 @@ CREATE TABLE IF NOT EXISTS RORO_EVENTS_MASTER (
   INDEX IDX_RORO_EVENTS_LOC (prefecture, city),
   INDEX IDX_RORO_EVENTS_DATE_STR (date),
   INDEX IDX_RORO_EVENTS_LATLON (lat, lon)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='イベント';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='イベント（取り込み仕様準拠）';
 
 /* ===========================================================
-   9) AI 会話
+   8) AI 会話
    =========================================================== */
 CREATE TABLE IF NOT EXISTS RORO_AI_CONVERSATION (
   conv_id        BIGINT       NOT NULL AUTO_INCREMENT,
@@ -491,7 +581,7 @@ CREATE TABLE IF NOT EXISTS RORO_AI_CONVERSATION (
   CONSTRAINT FK_RORO_AI_CONV_CUSTOMER
     FOREIGN KEY (customer_id) REFERENCES RORO_CUSTOMER(customer_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='AI会話';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='AI会話';
 
 CREATE TABLE IF NOT EXISTS RORO_AI_MESSAGE (
   msg_id         BIGINT       NOT NULL AUTO_INCREMENT,
@@ -508,10 +598,10 @@ CREATE TABLE IF NOT EXISTS RORO_AI_MESSAGE (
   CONSTRAINT FK_RORO_AI_MSG_CONV
     FOREIGN KEY (conv_id) REFERENCES RORO_AI_CONVERSATION(conv_id)
     ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=@roro_collation COMMENT='AIメッセージ';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_520_ci COMMENT='AIメッセージ';
 
 /* ===========================================================
-   10) 後置外部キー（循環回避のため）
+   9) 後置外部キー（循環回避のため）
    =========================================================== */
 ALTER TABLE RORO_CUSTOMER
   ADD CONSTRAINT FK_RORO_CUSTOMER_DEFAULTPET
@@ -519,7 +609,10 @@ ALTER TABLE RORO_CUSTOMER
   ON UPDATE CASCADE ON DELETE SET NULL;
 
 /* ===========================================================
-   11) 互換ビュー（wp_roro_* → RORO_*）
+   10) 互換ビュー（wp_roro_* → RORO_*）
+   -----------------------------------------------------------
+   ※ 既存コードに wp_roro_* 名が残っていても動作するようにする
+   ※ 権限・セキュリティ要件に応じて SQL SECURITY を調整可
    =========================================================== */
 CREATE OR REPLACE VIEW `wp_roro_ai_conversation` AS SELECT * FROM `RORO_AI_CONVERSATION`;
 CREATE OR REPLACE VIEW `wp_roro_ai_message`      AS SELECT * FROM `RORO_AI_MESSAGE`;
