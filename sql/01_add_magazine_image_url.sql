@@ -1,11 +1,11 @@
 -- 01_add_magazine_image_url.sql
 --
--- Adds an `image_url` column to the RORO_MAGAZINE_PAGE table.  Because
--- MySQL does not support `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`,
--- this script guards the ALTER statement by checking the data dictionary.
+-- RORO_MAGAZINE_PAGE テーブルに `image_url` 列を追加します。
+-- MySQL は `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` をサポートしていないため、
+-- このスクリプトではデータディクショナリを確認してから ALTER 文を実行します。
 
--- Check whether the image_url column already exists.  If it does not,
--- construct and execute an ALTER TABLE statement to add the column.
+-- image_url 列が既に存在するかを確認します。存在しない場合は、
+-- ALTER TABLE 文を構築して列を追加します。
 SET @col_exists := (
   SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
   WHERE TABLE_SCHEMA = DATABASE()

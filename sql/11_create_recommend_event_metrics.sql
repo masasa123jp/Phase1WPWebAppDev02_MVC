@@ -1,11 +1,12 @@
 -- 11_create_recommend_event_metrics.sql
 --
--- Creates a table used to record interactions with recommended events.
--- When a visitor clicks on a recommended event, the front end should
--- call the appropriate REST endpoint, which inserts a row into this
--- table.  The table records the user (if logged in), the event ID and
--- the timestamp of the click.  The CREATE TABLE IF NOT EXISTS clause
--- allows this migration to be run multiple times without errors.
+-- 推薦イベントとのインタラクションを記録するテーブルを作成します。
+-- 訪問者が推薦イベントをクリックした際、フロントエンドは
+-- 適切な REST エンドポイントを呼び出し、このテーブルに行を追加します。
+-- このテーブルには、ユーザー（ログインしている場合）、イベントID、
+-- クリックのタイムスタンプが記録されます。
+-- CREATE TABLE IF NOT EXISTS 句により、このマイグレーションは
+-- 複数回実行してもエラーになりません。
 
 CREATE TABLE IF NOT EXISTS `RORO_RECOMMEND_EVENT_METRICS` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

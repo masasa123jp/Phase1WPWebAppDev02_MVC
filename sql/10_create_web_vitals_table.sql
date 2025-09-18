@@ -1,10 +1,10 @@
 -- 10_create_web_vitals_table.sql
 --
--- Introduces a table for storing Core Web Vitals measurements from
--- the front end.  Each row represents a single metric sample and
--- references the WordPress user if the visitor was logged in.  If the
--- table already exists, the CREATE TABLE IF NOT EXISTS clause will
--- prevent errors.
+-- フロントエンドから取得した Core Web Vitals の計測値を保存する
+-- テーブルを作成します。各行は 1 件のメトリクスサンプルを表し、
+-- 訪問者がログインしていた場合は WordPress ユーザーを参照します。
+-- テーブルがすでに存在する場合でも、CREATE TABLE IF NOT EXISTS 句により
+-- エラーは発生しません。
 
 CREATE TABLE IF NOT EXISTS `RORO_WEB_VITALS` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

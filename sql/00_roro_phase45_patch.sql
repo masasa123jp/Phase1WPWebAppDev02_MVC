@@ -9,7 +9,7 @@
 -- 付録B：イベントテーブル（RORO_EVENTS_MASTER）に欠落している列を追加
 --        （id 列および event_date 列）し、既存データから event_date を補完します。
 --        `id` は自動採番にするため AUTO_INCREMENT 属性を付与し、MySQL 5.7 の制約
---        （AUTO_INCREMENT 列は必ずインデックスを伴う必要がある【961941687783585†L131-L146】【628712530544714†L126-L133】）
+--        （AUTO_INCREMENT 列は必ずインデックスを伴う必要がある  ）
 --        を満たすため UNIQUE 制約を併せて付与します。
 --
 -- このファイルは単独で実行可能です。データベースに対して実行する前に
@@ -71,14 +71,13 @@ SET @has_id := (
 );
 
 --
--- MySQL requires that any AUTO_INCREMENT column be indexed.  Without
--- a primary key or unique index, adding an AUTO_INCREMENT column will
--- raise error 1075 (“there can be only one auto column and it must be
--- defined as a key”).  To satisfy this requirement without
--- disturbing the existing primary key (which is based on `event_id`),
--- we define the new `id` column with the `UNIQUE` attribute.  This
--- implicitly creates a unique index on the column as part of the
--- `ALTER TABLE` statement【961941687783585†L131-L146】【628712530544714†L126-L133】.
+-- MySQL では AUTO_INCREMENT 列は必ずインデックスを持つ必要があります。
+-- 主キーやユニークインデックスがない場合に AUTO_INCREMENT 列を追加すると
+-- エラー 1075（「自動カラムは1つしか存在できず、必ずキーとして定義されなければならない」）
+-- が発生します。この要件を満たしつつ、既存の主キー（`event_id`）を壊さないために、
+-- 新しく追加する `id` 列に `UNIQUE` 属性を付与します。
+-- これにより `ALTER TABLE` 文の一部としてユニークインデックスが暗黙的に作成されます。
+--   
 SET @sql := IF(@has_id = 0,
   'ALTER TABLE `RORO_EVENTS_MASTER` ADD COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE FIRST;',
   'SELECT 1;'
